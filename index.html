@@ -1183,6 +1183,76 @@ body.header-compact .progress-bar{
   }
 }
 
+
+/* V2.2 cross-browser collector-card fix */
+
+/* Remove risky 3D transform for found cards */
+.flip-card.found{
+  padding:4px!important;
+  border-radius:24px!important;
+  background:var(--accentSolid,linear-gradient(160deg,#2f7d32,#76b852))!important;
+  box-shadow:0 10px 24px rgba(31,59,34,.18)!important;
+}
+
+.flip-card.found .flip-inner{
+  transform:none!important;
+  border-radius:20px!important;
+  overflow:hidden!important;
+}
+
+.flip-card.found .front{
+  display:none!important;
+}
+
+.flip-card.found .card-back{
+  transform:none!important;
+  display:flex!important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:20px!important;
+  overflow:hidden!important;
+  backface-visibility:visible!important;
+  -webkit-backface-visibility:visible!important;
+}
+
+/* Disable previous mask-based outlines that vary across browsers */
+.flip-card.found .card-face::after,
+.card-back::after{
+  display:none!important;
+}
+
+/* Improve text rendering on Safari/Firefox */
+.flip-inner,
+.card-face,
+.card-back,
+.back-content,
+.front,
+.card-title-overlay{
+  -webkit-font-smoothing:antialiased;
+  transform-style:flat!important;
+}
+
+.card-face{
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+
+/* Keep unfound cards normal */
+.flip-card:not(.found) .flip-inner{
+  transform:none;
+}
+
+/* Safe collector sheen, no mirrored text */
+.card-back:before{
+  display:none!important;
+}
+.back-bg:after{
+  display:none!important;
+}
+.back-content{
+  transform:none!important;
+}
+
 </style>
 
 <link rel="preload" as="image" href="images/red-campion.jpg">
@@ -1441,21 +1511,24 @@ function syncBadgeStore(stats=getStats()){
 function checkBadgeUnlocks(stats=getStats()){
   const previous=new Set(JSON.parse(localStorage.getItem(badgeStoreKey())||"[]"));
   const current=currentUnlockedBadgeSet(stats);
-  let firstNew=null;
+  const newly=[];
 
   badges.forEach(b=>{
-    if(current.has(b.id) && !previous.has(b.id) && !firstNew){
-      firstNew=b;
+    if(current.has(b.id) && !previous.has(b.id)){
+      newly.push(b);
     }
   });
 
   localStorage.setItem(badgeStoreKey(), JSON.stringify([...current]));
   renderBadgeVault();
 
-  if(firstNew){
-    showBadgeToast(firstNew);
-    if(firstNew.id==='all') showCompletionReward();
-  }
+  // Completion always goes to the front of the reward queue.
+  newly.sort((a,b)=> (a.id==="all" ? -1 : b.id==="all" ? 1 : 0));
+
+  newly.forEach(b=>{
+    if(b.id==="all") showCompletionReward();
+    else showBadgeToast(b);
+  });
 }
 function showBadgeToast(b){
   clearTimeout(badgeToastTimer);
