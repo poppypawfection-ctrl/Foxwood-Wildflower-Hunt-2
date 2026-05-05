@@ -1073,6 +1073,116 @@ header p,
   margin-top:8px;
 }
 
+
+/* V2.1 stable lean header — no shrinking-on-scroll */
+body.header-mini,
+body.header-compact{
+  /* defensive: these classes should not be used now */
+}
+
+.sticky-top{
+  position:sticky!important;
+  top:0!important;
+  z-index:90!important;
+  box-shadow:0 4px 16px rgba(0,0,0,.12)!important;
+}
+
+header{
+  padding:13px 16px 12px!important;
+  min-height:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+}
+
+header h1{
+  font-size:22px!important;
+  line-height:1.05!important;
+  margin:0!important;
+}
+
+header p{
+  display:none!important;
+}
+
+.vault-button{
+  flex-shrink:0!important;
+  padding:8px 11px!important;
+}
+
+.progress-wrap{
+  padding:8px 16px 10px!important;
+  background:rgba(255,255,255,.96)!important;
+}
+
+.progress-row{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  margin-bottom:8px!important;
+}
+
+#counter{
+  font-size:20px!important;
+}
+
+#nextBadgeText{
+  font-size:12px!important;
+  padding:7px 10px!important;
+}
+
+.progress-bar{
+  height:9px!important;
+  border-radius:999px!important;
+  background:rgba(31,59,34,.12)!important;
+}
+
+#barFill{
+  background:linear-gradient(90deg,#b8f27a,#6cc24a,#00e3ae)!important;
+  box-shadow:0 0 9px rgba(108,194,74,.55)!important;
+}
+
+.filter-bar{
+  position:relative!important;
+  top:auto!important;
+  z-index:30!important;
+  display:grid!important;
+  background:rgba(255,255,255,.94)!important;
+  border-bottom:1px solid rgba(31,59,34,.08)!important;
+}
+
+/* Override any legacy mini/compact hiding rules */
+body.header-mini .filter-bar,
+body.header-compact .filter-bar{
+  display:grid!important;
+  position:relative!important;
+  top:auto!important;
+}
+
+body.header-mini header,
+body.header-compact header,
+body.header-mini .progress-wrap,
+body.header-compact .progress-wrap,
+body.header-mini .progress-row,
+body.header-compact .progress-row,
+body.header-mini .progress-bar,
+body.header-compact .progress-bar{
+  all:revert-layer;
+}
+
+@media(max-width:430px){
+  header h1{
+    font-size:20px!important;
+  }
+  .vault-button{
+    font-size:13px!important;
+  }
+  #counter{
+    font-size:19px!important;
+  }
+}
+
 </style>
 
 <link rel="preload" as="image" href="images/red-campion.jpg">
@@ -1502,21 +1612,6 @@ function hideCompletionReward(){skipRewardQueue()}
 
 /* --- V1.8 stable header + tap-anywhere reward queue override --- */
 
-/* Stable compact header: delayed switch to avoid mid-scroll jank */
-let headerScrollTimer = null;
-function updateCompactHeader(){
-  const compact = window.scrollY > 110;
-  document.body.classList.toggle("header-mini", compact);
-  document.body.classList.toggle("header-compact", compact);
-}
-function scheduleCompactHeaderUpdate(){
-  clearTimeout(headerScrollTimer);
-  headerScrollTimer = setTimeout(updateCompactHeader, 80);
-}
-window.addEventListener("scroll", scheduleCompactHeaderUpdate, {passive:true});
-window.addEventListener("resize", updateCompactHeader);
-updateCompactHeader();
-
 function queueReward(item, priority=false){
   // Avoid duplicate completion cards in queue if triggered twice.
   if(item.type==="completion"){
@@ -1649,6 +1744,12 @@ function resetHunt(){
 }
 document.addEventListener("DOMContentLoaded",()=>{setupFilters();renderFlowers();updateAll(false);});
 setupFilters();renderFlowers();updateAll(false);
+
+/* V2.1: shrinking header removed for stable production scrolling */
+function updateCompactHeader(){
+  document.body.classList.remove("header-mini","header-compact");
+}
+
 </script>
 
 <div class="badge-detail" id="badgeDetail" onclick="if(event.target.id==='badgeDetail')closeBadgeDetail()">
